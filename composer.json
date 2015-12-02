@@ -1,18 +1,17 @@
 {
-  "name": "visualplus/cdn",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "doojin so",
-      "email": "sodoojin@gmail.com"
-    }
-  ],
-  "autoload": {
-    "psr-4": {
-      "Visualplus\\Naverid\\": "src/"
-    }
-  },
-  "require": {
-
-  }
+    "name": "visualplus/cdn",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "doojinso",
+            "email": "sodoojin@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Visualplus\\Cdn\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {}
 }
