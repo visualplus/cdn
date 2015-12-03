@@ -12,6 +12,10 @@ class CdnServiceProvider extends ServiceProvider {
         $this->publishes([
             __DIR__.'/../config/cdn.php' => config_path('cdn.php')
         ], 'config');
+
+        $this->publishes([
+            __DIR__.'/../migrations/' => database_path('migrations')
+        ], 'migrations');
     }
 
     /**
