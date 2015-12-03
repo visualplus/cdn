@@ -16,7 +16,7 @@ class Cdn
      * @param $path
      * @param $file
      */
-    public function Upload($path, $file)
+    public function upload($path, $file)
     {
         Storage::disks($this->driver)->put($path, $file);
     }
@@ -26,7 +26,7 @@ class Cdn
      *
      * @param $path
      */
-    public function Delete($path)
+    public function delete($path)
     {
         Storage::disks($this->driver)->delete($path);
     }
