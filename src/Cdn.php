@@ -85,7 +85,7 @@ class Cdn
      * @param string $size
      * @return string
      */
-    public function getImageURL($path, $filename, $size = '')
+    public function getURL($path, $filename, $size = '')
     {
         $cdnLog = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->where('size', '=', $size)->first();
 
