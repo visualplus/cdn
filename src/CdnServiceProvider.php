@@ -9,7 +9,9 @@ class CdnServiceProvider extends ServiceProvider {
      */
     public function boot()
     {
-
+        $this->publishes([
+            __DIR__.'/../config/cdn.php' => config_path('cdn.php')
+        ], 'config');
     }
 
     /**
@@ -18,7 +20,7 @@ class CdnServiceProvider extends ServiceProvider {
     public function register()
     {
         $this->app->singleton('cdn', function($app) {
-            return new \Visualplus\cdn\FileUploader;
+            return new \Visualplus\Cdn\Cdn;
         });
     }
 }
