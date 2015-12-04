@@ -15,7 +15,7 @@
     "minimum-stability": "stable",
     "require": {
         "php": ">=5.5.9",
-        "laravel/framework": "5.1.*",
+        "league/flysystem": "^1.0",
         "intervention/image": "^2.3@dev"
     }
 }

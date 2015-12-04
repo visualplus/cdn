@@ -1,7 +1,8 @@
 <?php namespace Visualplus\Cdn;
 
-use Storage;
 use Image;
+use League\Flysystem\Filesystem;
+use League\Flysystem\Adapter\Ftp as Adapter;
 use Visualplus\Cdn\CdnLog;
 
 class Cdn
@@ -10,8 +11,27 @@ class Cdn
     private $domain = "";
     private $default_path = "";
 
+    private $filesystem = "";
+    private $isConnected = false;
+
     public function __construct()
     {
+        $conf = config('filesystems.disks');
+
+        $this->filesystem = new Filesystem(new Adapter([
+            'host' => $conf['ftp']['host'],
+            'username' => $conf['ftp']['username'],
+            'password' => $conf['ftp']['password'],
+
+            'timeout' => 1,
+        ]));
+
+        try {
+            $this->filesystem->getAdapter()->getConnection();
+            $this->isConnected = true;
+        } catch (\RuntimeException $e) {
+        }
+
         $this->driver = config('cdn.driver');
         $this->domain = config('cdn.domain');
         $this->default_path = config('cdn.default_path');
@@ -26,6 +46,9 @@ class Cdn
      */
     public function exists($path, $filename, $size)
     {
+        // ftp 연결이 안됐을 경우 false를 리턴
+        if ($this->isConnected == null) return false;
+
         if (CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->where('size', '=', $size)->count() > 0) {
             return true;
         }
@@ -36,27 +59,34 @@ class Cdn
     /**
      * 파일 업로드
      * @param $path
-     * @param $filename
+     * @param $extension
      * @param $content
-     * @return bool
+     * @param string $size
+     * @param string $filename
+     * @return string
      */
-    public function upload($path, $filename, $content, $size = '')
+    public function upload($path, $extension, $content, $size = '')
     {
-        if ($this->exists($path, $filename, $size)) {
-            return false;
-        } else {
-            $upload_path = $path;
-            if ($size != '') $upload_path .= '/' . $size;
-            $upload_path .= '/' . $filename;
+        if ($this->isConnected == null) return "";
 
-            Storage::disk($this->driver)->put($this->default_path . $upload_path, $content);
-            CdnLog::create([
-                'path'      => $path,
-                'filename'  => $filename,
-                'size'      => $size,
-            ]);
-            return true;
-        }
+        do {
+            $filename = uniqid();
+        } while ($this->exists($path, $filename . '.' . $extension, $size));
+        $filename .= '.' . $extension;
+
+        $upload_path = $path;
+        if ($size != '') $upload_path .= '/' . $size;
+        $upload_path .= '/' . $filename;
+
+        // Storage::disk($this->driver)->put($this->default_path . $upload_path, $content);
+        $this->filesystem->put($this->default_path . $upload_path, $content);
+        CdnLog::create([
+            'path'      => $path,
+            'filename'  => $filename,
+            'size'      => $size,
+        ]);
+
+        return $filename;
     }
 
     /**
@@ -66,13 +96,16 @@ class Cdn
      */
     public function delete($path, $filename)
     {
+        if ($this->isConnected == null) return;
+
         $cdnLogs = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->get();
         foreach ($cdnLogs as $cdnLog) {
             $path = $cdnLog->path;
             if ($cdnLog->size != '') $path .= '/' . $cdnLog->size;
             $path .= '/' . $cdnLog->filename;
 
-            Storage::disk($this->driver)->delete($this->default_path . $path);
+            //Storage::disk($this->driver)->delete($this->default_path . $path);
+            $this->filesystem->delete($this->default_path . $path);
 
             $cdnLog->delete();
         }
@@ -87,6 +120,7 @@ class Cdn
      */
     public function getURL($path, $filename, $size = '')
     {
+        if ($this->isConnected == null) return "";
         $cdnLog = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->where('size', '=', $size)->first();
 
         if ($cdnLog) {
@@ -103,7 +137,8 @@ class Cdn
                 $parentFile = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->first();
                 if ($parentFile) {
                     // 부모 파일이 있어야 섬네일 생성 가능
-                    $src = Image::make(Storage::disk($this->driver)->get($this->default_path . $path . '/' . $filename));
+                    // $src = Image::make(Storage::disk($this->driver)->get($this->default_path . $path . '/' . $filename));
+                    $src = Image::make($this->filesystem->get($this->default_path . $path . '/' . $filename));
 
                     // 원본 이미지 사이즈 구하기
                     $img_w = $src->width();
@@ -120,18 +155,30 @@ class Cdn
                     }
 
                     // 이미지 업로드
-                    if ($this->upload($path, $filename, $src->response()->original, $size)) {
-                        $url = $path;
-                        $url .= '/' . $size;
-                        $url .= '/' . $filename;
+                    $filename = $this->upload($path, pathinfo($filename, PATHINFO_EXTENSION), $src->response()->original, $size);
 
-                        return $this->domain . '/' . $url;
-                    } else {
-                        dd('asdf');
-                    }
+                    $url = $path;
+                    $url .= '/' . $size;
+                    $url .= '/' . $filename;
+
+                    return $this->domain . '/' . $url;
                 }
             }
-            return 'image not found';
+            return '';
         }
+    }
+
+    /**
+     * 다운로드 URL 가져오기
+     * @param $path
+     * @param $filename
+     * @param $orgname
+     * @return string
+     */
+    public function getDownloadURL($path, $filename, $orgname)
+    {
+        $url = $this->getURL($path, $filename, '');
+
+        return $url;
     }
 }
