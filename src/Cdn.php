@@ -140,30 +140,34 @@ class Cdn
                 if ($parentFile) {
                     // 부모 파일이 있어야 섬네일 생성 가능
                     // $src = Image::make(Storage::disk($this->driver)->get($this->default_path . $path . '/' . $filename));
-                    $src = Image::make($this->filesystem->read($this->default_path . $path . '/' . $filename));
+                    try {
+                        $src = Image::make($this->filesystem->read($this->default_path . $path . '/' . $filename));
 
-                    // 원본 이미지 사이즈 구하기
-                    $img_w = $src->width();
-                    $img_h = $src->height();
+                        // 원본 이미지 사이즈 구하기
+                        $img_w = $src->width();
+                        $img_h = $src->height();
 
-                    // 원하는 이미지 사이즈
-                    $s = EXPLODE('x', $size);
-                    $width = $s[0];
-                    $height = $s[1];
+                        // 원하는 이미지 사이즈
+                        $s = EXPLODE('x', $size);
+                        $width = $s[0];
+                        $height = $s[1];
 
-                    // 원본 이미지보다 작은 사이즈를 원하면 원본 리사이징
-                    if ($img_w > $width) {
-                        $src->resize($width, $height);
+                        // 원본 이미지보다 작은 사이즈를 원하면 원본 리사이징
+                        if ($img_w > $width) {
+                            $src->resize($width, $height);
+                        }
+
+                        // 이미지 업로드
+                        $filename = $this->upload($path, pathinfo($filename, PATHINFO_EXTENSION), $src->response()->original, $size, $filename);
+
+                        $url = $path;
+                        $url .= '/' . $size;
+                        $url .= '/' . $filename;
+
+                        return $this->domain . '/' . $url;
+                    } catch (Exception $e) {
+                        return '';
                     }
-
-                    // 이미지 업로드
-                    $filename = $this->upload($path, pathinfo($filename, PATHINFO_EXTENSION), $src->response()->original, $size, $filename);
-
-                    $url = $path;
-                    $url .= '/' . $size;
-                    $url .= '/' . $filename;
-
-                    return $this->domain . '/' . $url;
                 }
             }
             return '';
