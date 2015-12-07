@@ -65,14 +65,16 @@ class Cdn
      * @param string $filename
      * @return string
      */
-    public function upload($path, $extension, $content, $size = '')
+    public function upload($path, $extension, $content, $size = '', $filename = '')
     {
         if ($this->isConnected == null) return "";
 
-        do {
-            $filename = uniqid();
-        } while ($this->exists($path, $filename . '.' . $extension, $size));
-        $filename .= '.' . $extension;
+        if ($filename == '') {
+            do {
+                $filename = uniqid();
+            } while ($this->exists($path, $filename . '.' . $extension, $size));
+            $filename .= '.' . $extension;
+        }
 
         $upload_path = $path;
         if ($size != '') $upload_path .= '/' . $size;
@@ -138,7 +140,7 @@ class Cdn
                 if ($parentFile) {
                     // 부모 파일이 있어야 섬네일 생성 가능
                     // $src = Image::make(Storage::disk($this->driver)->get($this->default_path . $path . '/' . $filename));
-                    $src = Image::make($this->filesystem->get($this->default_path . $path . '/' . $filename));
+                    $src = Image::make($this->filesystem->read($this->default_path . $path . '/' . $filename));
 
                     // 원본 이미지 사이즈 구하기
                     $img_w = $src->width();
@@ -155,7 +157,7 @@ class Cdn
                     }
 
                     // 이미지 업로드
-                    $filename = $this->upload($path, pathinfo($filename, PATHINFO_EXTENSION), $src->response()->original, $size);
+                    $filename = $this->upload($path, pathinfo($filename, PATHINFO_EXTENSION), $src->response()->original, $size, $filename);
 
                     $url = $path;
                     $url .= '/' . $size;
