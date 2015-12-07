@@ -47,7 +47,7 @@ class Cdn
     public function exists($path, $filename, $size)
     {
         // ftp 연결이 안됐을 경우 false를 리턴
-        if ($this->isConnected == null) return false;
+        if ($this->isConnected == false) return false;
 
         if (CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->where('size', '=', $size)->count() > 0) {
             return true;
@@ -67,7 +67,7 @@ class Cdn
      */
     public function upload($path, $extension, $content, $size = '', $filename = '')
     {
-        if ($this->isConnected == null) return "";
+        if ($this->isConnected == false) return "";
 
         if ($filename == '') {
             do {
@@ -98,7 +98,7 @@ class Cdn
      */
     public function delete($path, $filename)
     {
-        if ($this->isConnected == null) return;
+        if ($this->isConnected == false) return;
 
         $cdnLogs = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->get();
         foreach ($cdnLogs as $cdnLog) {
@@ -122,7 +122,7 @@ class Cdn
      */
     public function getURL($path, $filename, $size = '')
     {
-        if ($this->isConnected == null) return "";
+        if ($this->isConnected == false) return "";
         $cdnLog = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->where('size', '=', $size)->first();
 
         if ($cdnLog) {
@@ -186,5 +186,18 @@ class Cdn
         $url = $this->getURL($path, $filename, '');
 
         return $url;
+    }
+
+    /**
+     * 파일 사이즈 구하기
+     * @param $path
+     * @param $filename
+     * @return bool|false|int
+     */
+    public function getSize($path, $filename)
+    {
+        if ($this->isConnected == false) return 0;
+
+        return $this->filesystem->getSize($path.'/'.$filename);
     }
 }
