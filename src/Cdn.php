@@ -107,11 +107,10 @@ class Cdn
             $path .= '/' . $cdnLog->filename;
 
             //Storage::disk($this->driver)->delete($this->default_path . $path);
-            try {
+            if ($this->filesystem->has($this->default_path . $path)) {
                 $this->filesystem->delete($this->default_path . $path);
-            } catch (Exception $e) {
-
             }
+
             $cdnLog->delete();
         }
     }
