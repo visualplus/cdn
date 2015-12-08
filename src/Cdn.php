@@ -199,7 +199,7 @@ class Cdn
      */
     public function getSize($path, $filename)
     {
-        if ($this->isConnected == false) return 0;
+        if ($this->isConnected == false) return -1;
 
         return $this->filesystem->getSize($path.'/'.$filename);
     }
