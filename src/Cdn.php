@@ -201,6 +201,6 @@ class Cdn
     {
         if ($this->isConnected == false) return -1;
 
-        return $this->filesystem->getSize($path.'/'.$filename);
+        return $this->filesystem->getSize($this->default_path . $path . '/' . $filename);
     }
 }
