@@ -22,8 +22,9 @@ class Cdn
             'host' => $conf['ftp']['host'],
             'username' => $conf['ftp']['username'],
             'password' => $conf['ftp']['password'],
+            'ssl'   => false,
 
-            'timeout' => 1,
+            'timeout' => 10,
         ]));
 
         try {
