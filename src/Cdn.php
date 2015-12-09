@@ -47,9 +47,6 @@ class Cdn
      */
     public function exists($path, $filename, $size)
     {
-        // ftp 연결이 안됐을 경우 false를 리턴
-        if ($this->isConnected == false) return false;
-
         if (CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->where('size', '=', $size)->count() > 0) {
             return true;
         }
@@ -126,7 +123,6 @@ class Cdn
      */
     public function getURL($path, $filename, $size = '')
     {
-        if ($this->isConnected == false) return "";
         $cdnLog = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->where('size', '=', $size)->first();
 
         if ($cdnLog) {
@@ -147,6 +143,7 @@ class Cdn
                         return $this->domain . '/' . $path . '/' . $filename;
                     }
 
+                    if ($this->isConnected == false) return "";
                     // 부모 파일이 있어야 섬네일 생성 가능
                     // $src = Image::make(Storage::disk($this->driver)->get($this->default_path . $path . '/' . $filename));
                     if ($this->filesystem->has($this->default_path . $path . '/' . $filename)) {
@@ -190,9 +187,9 @@ class Cdn
      */
     public function getDownloadURL($path, $filename, $orgname)
     {
-        $url = $this->getURL($path, $filename, '');
-
-        return $url;
+        if ($this->exists($path, $filename, '')) {
+            return $this->domain . '/download/' . $path . '/' . $filename . '/filename/' . $orgname;
+        }
     }
 
     /**
