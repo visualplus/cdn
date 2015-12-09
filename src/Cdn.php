@@ -142,6 +142,11 @@ class Cdn
                 // 찾으려는 파일이 섬네일이라면..
                 $parentFile = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->first();
                 if ($parentFile) {
+                    // bmp 파일은 그냥 리턴
+                    if (strtolower(pathinfo($filename, PATHINFO_EXTENSION)) == 'bmp') {
+                        return $this->domain . '/' . $path . '/' . $filename;
+                    }
+
                     // 부모 파일이 있어야 섬네일 생성 가능
                     // $src = Image::make(Storage::disk($this->driver)->get($this->default_path . $path . '/' . $filename));
                     if ($this->filesystem->has($this->default_path . $path . '/' . $filename)) {
