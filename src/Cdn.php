@@ -139,7 +139,7 @@ class Cdn
                 $parentFile = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->first();
                 if ($parentFile) {
                     // bmp 파일은 그냥 리턴
-                    if (strtolower(pathinfo($filename, PATHINFO_EXTENSION)) == 'bmp') {
+                    if (!in_array(strtolower(pathinfo($filename, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png'])) {
                         return $this->domain . '/' . $path . '/' . $filename;
                     }
 
