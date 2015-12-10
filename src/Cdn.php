@@ -138,7 +138,7 @@ class Cdn
                 // 찾으려는 파일이 섬네일이라면..
                 $parentFile = CdnLog::where('path', '=', $path)->where('filename', '=', $filename)->first();
                 if ($parentFile) {
-                    // bmp 파일은 그냥 리턴
+                    // 처리 가능한 이미지파일이 아니면 리턴
                     if (!in_array(strtolower(pathinfo($filename, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png'])) {
                         return $this->domain . '/' . $path . '/' . $filename;
                     }
