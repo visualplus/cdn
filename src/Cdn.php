@@ -39,6 +39,36 @@ class Cdn
     }
 
     /**
+     * @param $path
+     * @param $filename
+     * @return null
+     */
+    public function get($path, $filename)
+    {
+        if ($this->isConnected == false) return null;
+        if (!$this->exists($path, $filename, '')) return null;
+
+        return $this->filesystem->get($path . '/' . $filename);
+    }
+
+    /**
+     * @param $from_path
+     * @param $from_filename
+     * @param $to_path
+     * @param null $to_filename
+     * @return null
+     */
+    public function move($from_path, $from_filename, $to_path, $to_filename = null)
+    {
+        if ($this->isConnected == false) return null;
+        if (!$this->exists($from_path, $from_filename, '')) return null;
+
+        if ($to_filename == null) $to_filename = $from_filename;
+
+        $this->filesystem->move($from_path . '/' . $from_filename, $to_path . '/' . $to_filename);
+    }
+
+    /**
      * 파일이 존재하는지 검사
      * @param $path
      * @param $filename
